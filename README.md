@@ -1,1 +1,1 @@
-# spring_jwt_refresh_cookie_httponly
+# spring_jwt_refreshToken
