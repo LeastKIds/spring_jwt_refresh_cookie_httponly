@@ -8,6 +8,8 @@ import com.example.jwt.service.auth.AuthenticationService;
 import com.example.jwt.type.i.auth.LogoutInterface;
 import com.example.jwt.type.i.auth.RefreshTokenInterface;
 import com.example.jwt.type.i.auth.RegisterInterface;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,8 +37,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<LogoutInterface> logout(@RequestHeader("Refresh-Token") String refreshToken, @RequestHeader("Authorization") String accessToken ) {
-        return service.logout(accessToken, refreshToken);
+    public ResponseEntity<LogoutInterface> logout(HttpServletRequest request, HttpServletResponse response) {
+        return service.logout(request, response);
     }
 
     @PostMapping("/getAccessToken")

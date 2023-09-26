@@ -1,5 +1,6 @@
 package com.example.jwt.util.jwt.filter;
 
+import com.example.jwt.util.jwt.service.CookiesService;
 import com.example.jwt.util.jwt.service.JwtService;
 import com.example.jwt.util.redis.RedisService;
 import jakarta.servlet.FilterChain;
@@ -28,8 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final RedisService redisService;
+    private final CookiesService cookiesService;
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
 
 
     @Override
@@ -43,15 +46,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
 
-        final String authHeader = request.getHeader("Authorization");
+        // final String authHeader = request.getHeader("Authorization");
 
-        final String jwt;
-        final String userEmail;
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // final String jwt;
+        // final String userEmail;
+        // if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+        //     filterChain.doFilter(request, response);
+        //     return;
+        // }
+        // jwt = authHeader.substring(7);
+
+        String jwt = cookiesService.getAccessTokenFromCookies(request.getCookies());
+        if(jwt == null){
             filterChain.doFilter(request, response);
             return;
-        }
-        jwt = authHeader.substring(7);
+        }        
+
+        final String userEmail;
 
         // redis로 블랙리스트 확인
         if(redisService.hasKeyBlackList(encrypt(jwt))) {

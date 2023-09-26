@@ -16,9 +16,10 @@ public class TokenService {
 
     public String getAccessTokenSetHeader(String token) {
         return ResponseCookie.from("accessToken", token)
+                // .domain("localhost")
                 .path("/")
                 .secure(true)
-                .sameSite("Lax")
+                .sameSite("None")
                 .httpOnly(true)
                 .build()
                 .toString();
@@ -26,10 +27,35 @@ public class TokenService {
 
     public String getRefreshTokenSetHeader(String token) {
         return ResponseCookie.from("refreshToken", token)
+                // .domain("localhost")
                 .path("/")
                 .secure(true)
-                .sameSite("Lax")
+                .sameSite("None")
                 .httpOnly(true)
+                .build()
+                .toString();
+    }
+
+    public String deleteAccessTokenSetHeader(String token) {
+        return ResponseCookie.from("accessToken", token)
+                // .domain("localhost")
+                .path("/")
+                .secure(true)
+                .sameSite("None")
+                .httpOnly(true)
+                .maxAge(0)
+                .build()
+                .toString();
+    }
+
+    public String deleteRefreshTokenSetHeader(String token) {
+        return ResponseCookie.from("refreshToken", token)
+                // .domain("localhost")
+                .path("/")
+                .secure(true)
+                .sameSite("None")
+                .httpOnly(true)
+                .maxAge(0)
                 .build()
                 .toString();
     }

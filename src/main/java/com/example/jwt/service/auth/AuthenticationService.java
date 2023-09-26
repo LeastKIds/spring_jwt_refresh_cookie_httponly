@@ -20,7 +20,9 @@ import com.example.jwt.domain.auth.User;
 import com.example.jwt.repository.auth.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.example.jwt.util.jwt.service.CookiesService;
 
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,8 @@ public class AuthenticationService {
     private final RedisService redisService;
 
     private final TokenService tokenService;
+    
+    private final CookiesService cookiesService;
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
@@ -141,19 +145,23 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public ResponseEntity<LogoutInterface> logout(String accessToken, String refreshToken) throws RuntimeException{
+    public ResponseEntity<LogoutInterface> logout(HttpServletRequest request, HttpServletResponse response) throws RuntimeException{
 
-        if(!accessToken.startsWith("Bearer ") || !refreshToken.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    ErrorResponse.builder().error("Invalid token format").build()
-            );
-        }
-        String accessJwt = accessToken.substring(7);
-        String refreshJwt = refreshToken.substring(7);
-
+        // if(!accessToken.startsWith("Bearer ") || !refreshToken.startsWith("Bearer ")) {
+        //     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+        //             ErrorResponse.builder().error("Invalid token format").build()
+        //     );
+        // }
+        // String accessJwt = accessToken.substring(7);
+        // String refreshJwt = refreshToken.substring(7);
+        
+        String accessJwt = cookiesService.getAccessTokenFromCookies(request.getCookies());
+        String refreshJwt = cookiesService.getRefreshTokenFromCookies(request.getCookies());
+        
         String userEmail;
         try {
             userEmail = jwtService.extractRefreshTokenUsername(refreshJwt);
+            System.out.println("userEmail: " + userEmail);
         } catch (ExpiredJwtException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     ErrorResponse.builder().error("The token is expired").build()
@@ -184,8 +192,11 @@ public class AuthenticationService {
         }
 
         redisService.setBlackList(encrypt(accessJwt), userEmail, differenceInMilliseconds);
-        return ResponseEntity.ok(LogoutResponse.builder().status(true).build());
 
+        response.addHeader("Set-Cookie", tokenService.deleteAccessTokenSetHeader(accessJwt));
+        response.addHeader("Set-Cookie", tokenService.deleteRefreshTokenSetHeader(refreshJwt));
+
+        return ResponseEntity.ok(LogoutResponse.builder().status(true).build());
     }
 
     @Transactional
