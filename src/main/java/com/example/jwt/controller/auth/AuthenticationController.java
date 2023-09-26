@@ -5,6 +5,7 @@ import com.example.jwt.dto.request.auth.RegisterRequest;
 import com.example.jwt.dto.response.auth.AuthenticationTokenResponse;
 import com.example.jwt.error.ErrorResponse;
 import com.example.jwt.service.auth.AuthenticationService;
+import com.example.jwt.type.i.auth.AuthenticateInterface;
 import com.example.jwt.type.i.auth.LogoutInterface;
 import com.example.jwt.type.i.auth.RefreshTokenInterface;
 import com.example.jwt.type.i.auth.RegisterInterface;
@@ -24,15 +25,12 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
     private final AuthenticationService service;
     @PostMapping("/register")
-    public ResponseEntity<RegisterInterface> register(@Validated @RequestBody RegisterRequest request, Errors errors, HttpServletResponse response) {
-        if(errors.hasErrors()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder().error(errors.toString()).build());
-        }
+    public ResponseEntity<RegisterInterface> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
         return service.register(request, response);
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationTokenResponse> authenticate(@RequestBody AuthenticationRequest request, HttpServletResponse response) {
+    public ResponseEntity<AuthenticateInterface> authenticate(@RequestBody AuthenticationRequest request, HttpServletResponse response) {
         return service.authenticate(request, response);
     }
 
@@ -42,7 +40,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/getAccessToken")
-    public ResponseEntity<RefreshTokenInterface> getAccessToken(@RequestHeader("Refresh-Token") String refreshToken, HttpServletResponse response) {
-        return service.getAccessToken(refreshToken, response);
+    public ResponseEntity<RefreshTokenInterface> getAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        return service.getAccessToken(request, response);
     }
 }
